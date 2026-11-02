@@ -263,6 +263,9 @@ class Security {
 			trigger_error(__d('cake_dev', 'You must use a key larger than 32 bytes for Security::rijndael()'), E_USER_WARNING);
 			return '';
 		}
+		if (!function_exists('mcrypt_encrypt')) {
+			throw new CakeException(__d('cake_dev', 'Security::rijndael() requires the mcrypt extension, which has been removed since PHP 7.2. Use Security::encrypt() instead.'));
+		}
 		$algorithm = MCRYPT_RIJNDAEL_256;
 		$mode = MCRYPT_MODE_CBC;
 		$ivSize = mcrypt_get_iv_size($algorithm, $mode);
