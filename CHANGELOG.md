@@ -4,6 +4,38 @@ Fork privé de maintenance de CakePHP 2.x, basé sur la version officielle
 2.10.24. Le nom du package Composer (`cakephp/cakephp`) est conservé ; les
 versions du fork suivent le schéma `2.10.24.N`.
 
+## 2.10.24.3 — 2026-11-02
+
+**Compatibilité PHP 7.4 → 8.5** (aucun changement fonctionnel).
+
+- `composer.json` : contrainte PHP `>=5.3.0,<8.0.0` → `>=7.4.0` (l'ancienne
+  borne supérieure bloquait toute résolution sous PHP 8.x alors que le code
+  est testé fonctionnel).
+- `Security::rijndael()` : lève une `CakeException` claire quand l'extension
+  mcrypt (supprimée en PHP 7.2) est absente, au lieu d'un fatal
+  `Call to undefined function`. L'ordre de validation des paramètres est
+  préservé.
+- `Security::cipher()` : le seed très grand est borné explicitement à
+  `PHP_INT_MAX` (comportement identique à la saturation historique du cast
+  sous PHP 7, sans la deprecation du cast introduite en PHP 8.1).
+- `lib/Cake/Utility/String.php` : la classe `String` (nom réservé depuis
+  PHP 7.0, fatal à la compilation) n'est plus déclarée ; le fichier produit
+  une notice pointant vers `CakeText` si quelque chose l'autoload encore.
+- `CakeObject` : attribut `#[AllowDynamicProperties]` déclaré et hérité par
+  toute la hiérarchie (controllers, models, views, helpers, components,
+  shells) — supprime les deprecations PHP 8.2+ des propriétés dynamiques,
+  sans effet sous PHP 7.x.
+- `ShellDispatcher` : `strpos((string)$params[...])` — supprime la
+  deprecation `strpos(null)` en console sous PHP 8.1+.
+
+Tests : sous PHP 7.4.33 les suites core conservent leurs résultats
+(View 85 OK, CakeRequest 92 OK, Security 33 OK/1 skip, Controller 64 OK
+(+7 erreurs baseline tests), Model 369 (1 err/28 skip baseline tests),
+SecurityComponent 81 (7 échecs + 8 erreurs baseline tests, basés sur la
+session)). Sous PHP 8.5.12 : View 85 OK, CakeRequest 92 OK, Security 33 OK
+(14 skips — mcrypt absent), Controller 64 OK, Model 369 (1 err/28 skip,
+identique), CakeText 25 OK ; console sans deprecation.
+
 ## 2.10.24.2 — 2026-11-02
 
 **Backport : CVE-2015-8379 / GHSA-556q-h4vr-pgh2 (high)** — Contournement CSRF
