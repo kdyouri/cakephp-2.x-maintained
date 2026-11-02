@@ -192,7 +192,9 @@ class CakeText {
 		}
 		$dataReplacements = array_combine($hashKeys, array_values($data));
 		foreach ($dataReplacements as $tmpHash => $tmpValue) {
-			$tmpValue = (is_array($tmpValue)) ? '' : $tmpValue;
+			// PHP 7 silently replaced null with an empty string; PHP 8.1+
+			// deprecates passing null to str_replace().
+			$tmpValue = (is_array($tmpValue) || $tmpValue === null) ? '' : $tmpValue;
 			$str = str_replace($tmpHash, $tmpValue, $str);
 		}
 
