@@ -18,10 +18,16 @@
 App::uses('CakeText', 'Utility');
 
 /**
- * String handling methods.
+ * The legacy String class cannot be declared anymore: "String" is a reserved
+ * class name since PHP 7.0 and declaring it is a fatal error. Code referencing
+ * String should use CakeText instead, which has been the documented
+ * replacement since CakePHP 2.7.
+ *
+ * This file still exists so that App::uses('String', 'Utility') autoloading
+ * produces a helpful notice instead of a fatal parse error.
  *
  * @package Cake.Utility
  * @deprecated 3.0.0 Deprecated since version 2.7, use CakeText class instead.
  */
-class String extends CakeText {
-}
+
+trigger_error(__d('cake_dev', 'The String class cannot be declared since PHP 7.0 reserved the name, use CakeText instead.'), E_USER_NOTICE);
