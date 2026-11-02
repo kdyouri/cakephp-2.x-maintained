@@ -4,6 +4,16 @@ Fork privé de maintenance de CakePHP 2.x, basé sur la version officielle
 2.10.24. Le nom du package Composer (`cakephp/cakephp`) est conservé ; les
 versions du fork suivent le schéma `2.10.24.N`.
 
+## 2.10.24.5 — 2026-11-02
+
+**Correctif deprecation PHP 8.1+.**
+
+- `CakeText::insert()` : les valeurs `null` des données de remplacement
+  sont désormais traitées comme chaîne vide, comme le faisait
+  silencieusement `str_replace()` sous PHP 7. Chaque warning loggé
+  (`Debugger::outputError`, logs fichiers) générait une deprecation
+  `str_replace(): Passing null` sous PHP 8.1+. Sortie identique.
+
 ## 2.10.24.4 — 2026-11-02
 
 **Correctif console sous PHP 8.x.**
