@@ -4,6 +4,16 @@ Fork privé de maintenance de CakePHP 2.x, basé sur la version officielle
 2.10.24. Le nom du package Composer (`cakephp/cakephp`) est conservé ; les
 versions du fork suivent le schéma `2.10.24.N`.
 
+## 2.10.24.4 — 2026-11-02
+
+**Correctif console sous PHP 8.x.**
+
+- `Shell::hasMethod()` : retourne `false` pour un nom de commande non
+  chaîne ou vide au lieu de construire un `ReflectionMethod($this, null)`
+  (TypeError fatal sous PHP 8.x). Le flux `cake` sans commande affiche
+  de nouveau l'aide en console, comme sous PHP 7.4. Testé sous PHP 7.4.33
+  et 8.5.12 (ShellTest 43 tests OK des deux côtés).
+
 ## 2.10.24.3 — 2026-11-02
 
 **Compatibilité PHP 7.4 → 8.5** (aucun changement fonctionnel).
