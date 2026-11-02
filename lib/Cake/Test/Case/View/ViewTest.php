@@ -349,6 +349,9 @@ class ViewTest extends CakeTestCase {
 	public function tearDown() {
 		parent::tearDown();
 		CakePlugin::unload();
+		foreach (array('evil_element', 'evil_layout', 'evil_view') as $file) {
+			@unlink(CAKE . 'Test' . DS . 'test_app' . DS . $file . '.ctp');
+		}
 		unset($this->View);
 		unset($this->PostsController);
 		unset($this->Controller);
@@ -739,6 +742,69 @@ class ViewTest extends CakeTestCase {
 		$this->View->plugin = 'TestPlugin';
 		$result = $this->View->elementExists('test_plugin_element');
 		$this->assertTrue($result);
+	}
+
+/**
+ * Test that element names cannot escape the view template paths.
+ *
+ * @expectedException InvalidArgumentException
+ * @expectedExceptionMessage it is not within any view template path.
+ * @return void
+ */
+	public function testElementPathEscape() {
+		$this->_createOutsideTemplateFile('evil_element');
+		$this->View->element('../../evil_element');
+	}
+
+/**
+ * Test that element names can traverse within the defined template paths.
+ *
+ * @return void
+ */
+	public function testElementPathInsideTemplatePaths() {
+		$this->View->plugin = 'TestPlugin';
+		$result = $this->View->element('../Tests/index');
+		$this->assertEquals('test plugin index', $result);
+	}
+
+/**
+ * Test that layout names cannot escape the view template paths.
+ *
+ * @expectedException InvalidArgumentException
+ * @expectedExceptionMessage it is not within any view template path.
+ * @return void
+ */
+	public function testLayoutPathEscape() {
+		$this->_createOutsideTemplateFile('evil_layout');
+		$this->Controller->plugin = null;
+		$this->Controller->viewPath = 'Posts';
+		$View = new TestView($this->Controller);
+		$View->getLayoutFileName('../../evil_layout');
+	}
+
+/**
+ * Test that view names cannot escape the view template paths.
+ *
+ * @expectedException InvalidArgumentException
+ * @expectedExceptionMessage it is not within any view template path.
+ * @return void
+ */
+	public function testViewPathEscape() {
+		$this->_createOutsideTemplateFile('evil_view');
+		$this->Controller->plugin = null;
+		$this->Controller->viewPath = 'Themed';
+		$View = new TestView($this->Controller);
+		$View->getViewFileName('TestTheme/../../../evil_view');
+	}
+
+/**
+ * Writes a template file outside of the configured view template paths.
+ *
+ * @param string $name The name of the template file, without extension.
+ * @return void
+ */
+	protected function _createOutsideTemplateFile($name) {
+		file_put_contents(CAKE . 'Test' . DS . 'test_app' . DS . $name . '.ctp', 'outside of template paths');
 	}
 
 /**

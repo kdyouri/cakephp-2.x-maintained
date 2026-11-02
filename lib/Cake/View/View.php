@@ -1023,8 +1023,9 @@ class View extends CakeObject {
 		$exts = $this->_getExtensions();
 		foreach ($exts as $ext) {
 			foreach ($paths as $path) {
-				if (file_exists($path . $name . $ext)) {
-					return $path . $name . $ext;
+				$file = $path . $name . $ext;
+				if (file_exists($file)) {
+					return $this->_checkFilePath($file, $plugin);
 				}
 			}
 		}
@@ -1076,8 +1077,9 @@ class View extends CakeObject {
 		$exts = $this->_getExtensions();
 		foreach ($exts as $ext) {
 			foreach ($paths as $path) {
-				if (file_exists($path . $file . $ext)) {
-					return $path . $file . $ext;
+				$filepath = $path . $file . $ext;
+				if (file_exists($filepath)) {
+					return $this->_checkFilePath($filepath, $plugin);
 				}
 			}
 		}
@@ -1110,12 +1112,44 @@ class View extends CakeObject {
 		$exts = $this->_getExtensions();
 		foreach ($exts as $ext) {
 			foreach ($paths as $path) {
-				if (file_exists($path . 'Elements' . DS . $name . $ext)) {
-					return $path . 'Elements' . DS . $name . $ext;
+				$file = $path . 'Elements' . DS . $name . $ext;
+				if (file_exists($file)) {
+					return $this->_checkFilePath($file, $plugin);
 				}
 			}
 		}
 		return false;
+	}
+
+/**
+ * Check that a view file path does not go outside of the defined template paths.
+ *
+ * Only paths that contain `..` will be checked, as they are the ones most likely to
+ * have the ability to resolve to files outside of the template paths. A candidate
+ * that does not exist on the current root (realpath returning false) is passed
+ * through so the path cascade can try the next root.
+ *
+ * @param string $file The path to the template file.
+ * @param string $plugin The plugin name or null. Used to generate template paths.
+ * @return string The file path
+ * @throws InvalidArgumentException
+ */
+	protected function _checkFilePath($file, $plugin) {
+		if (strpos($file, '..') === false) {
+			return $file;
+		}
+		$absolute = realpath($file);
+		if ($absolute === false) {
+			return $file;
+		}
+		foreach ($this->_paths($plugin) as $path) {
+			if (strpos($absolute, $path) === 0) {
+				return $file;
+			}
+		}
+		throw new InvalidArgumentException(
+			sprintf('Cannot use "%s" as a template, it is not within any view template path.', $file)
+		);
 	}
 
 /**
