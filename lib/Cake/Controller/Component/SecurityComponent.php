@@ -227,7 +227,13 @@ class SecurityComponent extends Component {
 	public function startup(Controller $controller) {
 		$this->request = $controller->request;
 		$this->_action = $controller->request->params['action'];
-		$hasData = ($controller->request->data || $controller->request->is(array('put', 'post', 'delete', 'patch')));
+		// Only safe methods (GET, HEAD, OPTIONS) without POST data skip validation.
+		// Requests with any other method, including forged methods created with
+		// the `_method` parameter, must always be validated, so that bad guys
+		// cannot make up fake HTTP methods to trick CSRF validation.
+		$requestMethod = env('REQUEST_METHOD');
+		$isSafeMethod = ($requestMethod === null || in_array($requestMethod, array('GET', 'HEAD', 'OPTIONS'), true));
+		$hasData = ($controller->request->data || !$isSafeMethod);
 		try {
 			$this->_methodsRequired($controller);
 			$this->_secureRequired($controller);

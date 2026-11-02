@@ -320,7 +320,7 @@ class SecurityComponentTest extends CakeTestCase {
  * @return void
  */
 	public function testRequireSecureSucceed() {
-		$_SERVER['REQUEST_METHOD'] = 'Secure';
+		$_SERVER['REQUEST_METHOD'] = 'GET';
 		$this->Controller->request['action'] = 'posted';
 		$_SERVER['HTTPS'] = 'on';
 		$this->Controller->Security->requireSecure('posted');
@@ -1388,6 +1388,75 @@ class SecurityComponentTest extends CakeTestCase {
 		$this->Security->startup($this->Controller);
 
 		$this->assertFalse($this->Controller->failed, 'fail() was called.');
+	}
+
+/**
+ * Test that requests with a forged method override, made through the
+ * `_method` parameter, are not skipped by CSRF validation.
+ *
+ * @return void
+ */
+	public function testCsrfNotSkippedForForgedMethod() {
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST = array('_method' => 'TRACE');
+
+		$request = new CakeRequest('posts/index');
+		$request->addParams(array('controller' => 'posts', 'action' => 'index'));
+		$this->Controller = new SecurityTestController($request);
+		$this->Controller->Components->init($this->Controller);
+		$this->Controller->Security = $this->Controller->TestSecurity;
+		$this->Controller->Security->blackHoleCallback = 'fail';
+		$this->Controller->Security->validatePost = false;
+		$this->Controller->Security->csrfCheck = true;
+
+		$this->Controller->Security->startup($this->Controller);
+		$this->assertTrue($this->Controller->failed, 'Forged method request was not blackholed.');
+	}
+
+/**
+ * Test that a forged method override with mixed case method name is
+ * not skipped by CSRF validation.
+ *
+ * @return void
+ */
+	public function testCsrfNotSkippedForForgedMethodMixedCase() {
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST = array('_method' => 'post');
+
+		$request = new CakeRequest('posts/index');
+		$request->addParams(array('controller' => 'posts', 'action' => 'index'));
+		$this->Controller = new SecurityTestController($request);
+		$this->Controller->Components->init($this->Controller);
+		$this->Controller->Security = $this->Controller->TestSecurity;
+		$this->Controller->Security->blackHoleCallback = 'fail';
+		$this->Controller->Security->validatePost = false;
+		$this->Controller->Security->csrfCheck = true;
+
+		$this->Controller->Security->startup($this->Controller);
+		$this->assertTrue($this->Controller->failed, 'Forged method request was not blackholed.');
+	}
+
+/**
+ * Test that regular GET requests without POST data are still skipped
+ * by CSRF validation.
+ *
+ * @return void
+ */
+	public function testCsrfSkippedForGetRequestWithoutData() {
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		$_POST = array();
+
+		$request = new CakeRequest('posts/index');
+		$request->addParams(array('controller' => 'posts', 'action' => 'index'));
+		$this->Controller = new SecurityTestController($request);
+		$this->Controller->Components->init($this->Controller);
+		$this->Controller->Security = $this->Controller->TestSecurity;
+		$this->Controller->Security->blackHoleCallback = 'fail';
+		$this->Controller->Security->validatePost = false;
+		$this->Controller->Security->csrfCheck = true;
+
+		$this->Controller->Security->startup($this->Controller);
+		$this->assertFalse($this->Controller->failed, 'GET request was blackholed.');
 	}
 
 /**
