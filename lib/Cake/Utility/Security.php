@@ -223,7 +223,15 @@ class Security {
 			return '';
 		}
 
-		srand((int)(float)Configure::read('Security.cipherSeed'));
+		$cipherSeed = (float)Configure::read('Security.cipherSeed');
+		// Out-of-range float casts have saturated to PHP_INT_MAX since PHP 7;
+		// since PHP 8.1 the cast also emits a deprecation notice.
+		if ($cipherSeed > PHP_INT_MAX) {
+			$seed = PHP_INT_MAX;
+		} else {
+			$seed = (int)$cipherSeed;
+		}
+		srand($seed);
 		$out = '';
 		$keyLength = strlen($key);
 		for ($i = 0, $textLength = strlen($text); $i < $textLength; $i++) {
