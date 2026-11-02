@@ -161,3 +161,23 @@ la persistance des alertes ne signifie pas que le fork reste vulnérable.
 Pour signaler une vulnérabilité dans ce fork, contacter l'équipe de
 maintenance interne. Ne pas ouvrir d'issue publique avec des détails
 d'exploitation.
+
+## Compatibilité PHP
+
+À partir de la version `2.10.24.3`, le fork déclare `"php": ">=7.4.0"` et est
+testé sous PHP 7.4.33 (production), 8.2.35, 8.4.27 et 8.5.12 (boot, console et
+suites core).
+
+Changements de sécurité pertinents pour PHP 8.x :
+
+- `Security::rijndael()` lève une `CakeException` si l'extension mcrypt
+  (supprimée en PHP 7.2) est absente. Les applications qui utilisaient
+  rijndael (cookies chiffrés, données persistées) doivent migrer vers
+  `Security::encrypt()` (openssl, AES-256-CBC) — `rijndael()` n'a jamais eu
+  d'équivalent openssl car Rijndael-256 n'est pas AES.
+- `Security::cipher()` (API legacy dépréciée) conserve exactement le même
+  comportement : le seed hors plage est borné à `PHP_INT_MAX`, comme le faisait
+  la saturation du cast sous PHP 7. Les données chiffrées existantes restent
+  lisibles.
+- Les propriétés dynamiques (conception CakePHP 2.x) sont explicitement
+  autorisées via `#[AllowDynamicProperties]` sur `CakeObject`.

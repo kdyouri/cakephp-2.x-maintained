@@ -223,7 +223,15 @@ class Security {
 			return '';
 		}
 
-		srand((int)(float)Configure::read('Security.cipherSeed'));
+		$cipherSeed = (float)Configure::read('Security.cipherSeed');
+		// Out-of-range float casts have saturated to PHP_INT_MAX since PHP 7;
+		// since PHP 8.1 the cast also emits a deprecation notice.
+		if ($cipherSeed > PHP_INT_MAX) {
+			$seed = PHP_INT_MAX;
+		} else {
+			$seed = (int)$cipherSeed;
+		}
+		srand($seed);
 		$out = '';
 		$keyLength = strlen($key);
 		for ($i = 0, $textLength = strlen($text); $i < $textLength; $i++) {
@@ -262,6 +270,9 @@ class Security {
 		if (strlen($key) < 32) {
 			trigger_error(__d('cake_dev', 'You must use a key larger than 32 bytes for Security::rijndael()'), E_USER_WARNING);
 			return '';
+		}
+		if (!function_exists('mcrypt_encrypt')) {
+			throw new CakeException(__d('cake_dev', 'Security::rijndael() requires the mcrypt extension, which has been removed since PHP 7.2. Use Security::encrypt() instead.'));
 		}
 		$algorithm = MCRYPT_RIJNDAEL_256;
 		$mode = MCRYPT_MODE_CBC;

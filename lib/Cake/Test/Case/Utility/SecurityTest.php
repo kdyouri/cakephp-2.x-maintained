@@ -343,6 +343,18 @@ class SecurityTest extends CakeTestCase {
 	}
 
 /**
+ * Test that rijndael() throws a clear exception when the mcrypt extension
+ * is not available (it was removed in PHP 7.2) instead of a fatal error.
+ *
+ * @return void
+ */
+	public function testRijndaelMcryptUnavailable() {
+		$this->skipIf(function_exists('mcrypt_encrypt'), 'This test requires the mcrypt extension to be absent');
+		$this->setExpectedException('CakeException', 'Security::rijndael() requires the mcrypt extension');
+		Security::rijndael('The quick brown fox jumped over the lazy dog.', 'DYhG93b0qyJfIxfs2guVoUubWwvniR2G0FgaC9mi', 'encrypt');
+	}
+
+/**
  * Test encrypt/decrypt.
  *
  * @return void
