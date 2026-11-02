@@ -27,6 +27,17 @@ App::uses('Set', 'Utility');
  *
  * @package       Cake.Core
  */
+
+/**
+ * CakePHP 2.x builds objects dynamically by design: controllers, models,
+ * views, helpers, components and shells attach runtime properties through
+ * their whole class hierarchy (children of CakeObject). Declaring the
+ * AllowDynamicProperties attribute here marks every descendant as accepting
+ * dynamic properties, which stops the PHP 8.2+ deprecation notices and will
+ * keep working under PHP 9. On PHP 7.x the attribute line is parsed as a
+ * comment, so older runtimes are unaffected.
+ */
+#[AllowDynamicProperties]
 class CakeObject {
 
 /**
